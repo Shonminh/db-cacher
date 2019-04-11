@@ -10,21 +10,21 @@ import (
 )
 
 type TimeTask struct {
-	du      time.Duration
-	isClose bool
+	du       time.Duration
+	isClose  bool
 	lazyLoad bool
-	job     func() error
-	rMutex  sync.RWMutex
-	wg *sync.WaitGroup
+	job      func() error
+	rMutex   sync.RWMutex
+	wg       *sync.WaitGroup
 }
 
 func NewTimeTask(duration time.Duration, job func() error, lazyLoad bool, group *sync.WaitGroup) *TimeTask {
 	return &TimeTask{
-		du:      duration,
-		job:     job,
-		isClose: false,
+		du:       duration,
+		job:      job,
+		isClose:  false,
 		lazyLoad: lazyLoad,
-		wg: group,
+		wg:       group,
 	}
 }
 
@@ -32,27 +32,26 @@ func (t *TimeTask) Start() {
 	go t.run()
 }
 
-func (t *TimeTask) run()  {
+func (t *TimeTask) run() {
 	for false == t.checkIsClose() {
 		ticker := time.NewTicker(t.du)
 
 		if t.lazyLoad {
-			<- ticker.C
+			<-ticker.C
 		}
 		if err := t.job(); err != nil {
 			// TODO implement me , use log!!!
 			fmt.Printf("[Start]err is:%v", err.Error())
 		}
 		if t.lazyLoad == false {
-			<- ticker.C
+			<-ticker.C
 		}
 		ticker.Stop()
 	}
 	t.wg.Done()
 }
 
-
-func (t *TimeTask) checkIsClose() bool  {
+func (t *TimeTask) checkIsClose() bool {
 	t.rMutex.RLock()
 	defer t.rMutex.RUnlock()
 	return t.isClose
