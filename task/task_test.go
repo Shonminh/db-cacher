@@ -13,12 +13,19 @@ import (
 func TestTimeTask(t *testing.T) {
 	group := sync.WaitGroup{}
 	group.Add(2)
-	task1 := NewTimeTask(time.Second*4, func() error {
+	now := time.Now().Unix()
+	task1 := NewTimeTask(time.Second*1, func() error {
 		fmt.Println("task1 job")
+		if time.Now().Unix() >= now+3 {
+			group.Done()
+		}
 		return nil
 	}, false, &group)
-	task2 := NewTimeTask(time.Second*4, func() error {
+	task2 := NewTimeTask(time.Second*1, func() error {
 		fmt.Println("task2 job")
+		if time.Now().Unix() >=now+3 {
+			group.Done()
+		}
 		return nil
 	}, true, &group)
 	task1.Start()

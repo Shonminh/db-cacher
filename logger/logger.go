@@ -18,17 +18,17 @@ func RegisterLoggerFunc(logDebugFunc, logInfoFunc, logWarnFunc, logErrorFunc Log
 }
 
 func LogDebugf(format string, args ...interface{}) {
-	LogDebug(fmt.Sprintf(format, args))
+	LogDebug(fmt.Sprintf(format, args...))
 }
 
 func LogInfof(format string, args ...interface{}) {
-	LogInfo(fmt.Sprintf(format, args))
+	LogInfo(fmt.Sprintf(format, args...))
 }
 
 func LogWarnf(format string, args ...interface{}) {
-	LogWarn(fmt.Sprintf(format, args))
+	LogWarn(fmt.Sprintf(format, args...))
 }
 
 func LogErrorf(format string, args ...interface{}) {
-	LogError(fmt.Sprintf(format, args))
+	LogError(fmt.Sprintf(format, args...))
 }
