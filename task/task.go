@@ -4,7 +4,7 @@
 package task
 
 import (
-	"fmt"
+	"db-cacher/logger"
 	"sync"
 	"time"
 )
@@ -40,8 +40,7 @@ func (t *TimeTask) run() {
 			<-ticker.C
 		}
 		if err := t.job(); err != nil {
-			// TODO implement me , use log!!!
-			fmt.Printf("[Start]err is:%v", err.Error())
+			logger.LogErrorf("[Start]err is:%v", err.Error())
 		}
 		if t.lazyLoad == false {
 			<-ticker.C
