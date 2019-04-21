@@ -70,7 +70,7 @@ func TestGormEngine(t *testing.T) {
 	}
 
 	// test scan rows
-	results, err := engine.Table(tableName).ScanRows()
+	results, err := engine.Table(tableName).ScanRows(false)
 	if err != nil {
 		t.Errorf("scan rows failed, error is %v", err)
 	}

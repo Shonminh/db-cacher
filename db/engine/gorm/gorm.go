@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"db-cacher/db"
+	"db-cacher/logger"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/pkg/errors"
@@ -82,7 +83,8 @@ func (engine *GormEngine) Delete(value interface{}, where ...interface{}) db.Eng
 	return &GormEngine{db: engine.db.Delete(value, where...)}
 }
 
-func (engine *GormEngine) ScanRows() (results []map[string]string, err error) {
+
+func (engine *GormEngine) ScanRows(ignoreError bool) (results []map[string]string, err error) {
 	rows, err := engine.db.Rows()
 	if err != nil {
 		return nil, errors.WithMessage(err, "gorm.Rows")
@@ -97,6 +99,10 @@ func (engine *GormEngine) ScanRows() (results []map[string]string, err error) {
 	}
 	for rows.Next() {
 		err = rows.Scan(scanArgs...)
+		if  err != nil && ignoreError {
+			logger.LogWarnf("gorm.Scan failed, error is %v", err.Error())
+			continue
+		}
 		if err != nil {
 			return results, errors.WithMessage(err, "gorm.Scan")
 		}
@@ -112,7 +118,7 @@ func (engine *GormEngine) ScanRows() (results []map[string]string, err error) {
 		}
 		results = append(results, result)
 	}
-	return
+	return results, nil
 }
 
 func (engine *GormEngine) Error() error {

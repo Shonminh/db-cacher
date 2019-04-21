@@ -16,7 +16,9 @@ type Engine interface {
 	Limit(limit interface{}) Engine
 	Order(value interface{}, reorder ...bool) Engine
 	Select(query interface{}, args ...interface{}) Engine
-	ScanRows() (results []map[string]string, err error)
+
+	// ignoreError: when error occurs while scanning, if true continue scan, else stop and throw error.
+	ScanRows(ignoreError bool) (results []map[string]string, err error)
 	Table(name string) Engine
 	Error() error
 	Delete(value interface{}, where ...interface{}) Engine
