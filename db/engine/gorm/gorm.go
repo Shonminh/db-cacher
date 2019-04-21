@@ -4,10 +4,13 @@
 package gorm
 
 import (
+	"database/sql"
+	"time"
+
+	"db-cacher/db"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/pkg/errors"
-	"time"
 )
 
 var mysqlDb = "mysql"
@@ -25,17 +28,93 @@ func (engine *GormEngine) Init(dbName, dsn string, maxIdleConns, maxOpenConns in
 	if dbName == "" {
 		dbName = mysqlDb
 	}
-	db, err := gorm.Open(dbName, dsn)
+	openDb, err := gorm.Open(dbName, dsn)
 	if err != nil {
 		return errors.WithMessage(err, "gorm.Open")
 	}
-	db.DB().SetConnMaxLifetime(connMaxLifetime)
-	db.DB().SetMaxIdleConns(maxIdleConns)
-	db.DB().SetMaxOpenConns(maxOpenConns)
-	if db.DB().Ping() != nil {
+	openDb.DB().SetConnMaxLifetime(connMaxLifetime)
+	openDb.DB().SetMaxIdleConns(maxIdleConns)
+	openDb.DB().SetMaxOpenConns(maxOpenConns)
+	if openDb.DB().Ping() != nil {
 		return errors.WithMessage(err, "Ping failed")
 	}
-	engine.db = db
+	engine.db = openDb
 	return nil
 }
 
+func (engine *GormEngine) Table(name string) db.Engine {
+	return &GormEngine{db: engine.db.Table(name)}
+}
+
+func (engine *GormEngine) Where(query interface{}, args ...interface{}) db.Engine {
+	return &GormEngine{db: engine.db.Where(query, args...)}
+}
+
+func (engine *GormEngine) Find(out interface{}, where ...interface{}) db.Engine {
+	return &GormEngine{db: engine.db.Find(out, where...)}
+
+}
+
+func (engine *GormEngine) Create(value interface{}) db.Engine {
+	return &GormEngine{db: engine.db.Create(value)}
+
+}
+
+func (engine *GormEngine) Limit(limit interface{}) db.Engine {
+	return &GormEngine{db: engine.db.Limit(limit)}
+
+}
+
+func (engine *GormEngine) Order(value interface{}, reorder ...bool) db.Engine {
+	return &GormEngine{db: engine.db.Order(value, reorder...)}
+
+}
+
+func (engine *GormEngine) Select(query interface{}, args ...interface{}) db.Engine {
+	return &GormEngine{db: engine.db.Select(query, args...)}
+}
+
+func (engine *GormEngine) Updates(values interface{}, ignoreProtectedAttrs ...bool) db.Engine {
+	return &GormEngine{db: engine.db.Updates(values, ignoreProtectedAttrs...)}
+}
+
+func (engine *GormEngine) Delete(value interface{}, where ...interface{}) db.Engine {
+	return &GormEngine{db: engine.db.Delete(value, where...)}
+}
+
+func (engine *GormEngine) ScanRows() (results []map[string]string, err error) {
+	rows, err := engine.db.Rows()
+	if err != nil {
+		return nil, errors.WithMessage(err, "gorm.Rows")
+	}
+	defer rows.Close()
+	results = make([]map[string]string, 0, 1024)
+	columns, err := rows.Columns()
+	values := make([]sql.RawBytes, len(columns))
+	scanArgs := make([]interface{}, len(values))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+	for rows.Next() {
+		err = rows.Scan(scanArgs...)
+		if err != nil {
+			return results, errors.WithMessage(err, "gorm.Scan")
+		}
+		result := make(map[string]string)
+		for i, col := range values {
+			var value string
+			if col == nil {
+				value = "NULL"
+			} else {
+				value = string(col)
+			}
+			result[columns[i]] = value
+		}
+		results = append(results, result)
+	}
+	return
+}
+
+func (engine *GormEngine) Error() error {
+	return engine.db.Error
+}

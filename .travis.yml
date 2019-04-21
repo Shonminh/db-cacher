@@ -30,6 +30,7 @@ before_install:
   # TRAVIS_OS_NAME - linux and osx
   - echo $TRAVIS_OS_NAME
   - echo $PATH
+  - mysql -u root < deploy/sql/travis_test.sql
 #  - |
 #    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 #      brew update && brew install redis && brew services start redis && brew install mysql && brew services start mysql
