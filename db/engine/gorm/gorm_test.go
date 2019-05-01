@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var engine = New()
+var engine = new(GormEngine)
 var tableName = "travis_test_db.test_tab"
 
 type User struct {

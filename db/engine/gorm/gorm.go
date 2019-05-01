@@ -20,12 +20,7 @@ type GormEngine struct {
 	db *gorm.DB
 }
 
-func New() *GormEngine {
-	var gormEngine = new(GormEngine)
-	return gormEngine
-}
-
-func (engine *GormEngine) Init(dbName, dsn string, maxIdleConns, maxOpenConns int, connMaxLifetime time.Duration) error {
+func Init(dbName, dsn string, maxIdleConns, maxOpenConns int, connMaxLifetime time.Duration) error {
 	if dbName == "" {
 		dbName = mysqlDb
 	}
